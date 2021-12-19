@@ -1,5 +1,6 @@
 import { isAddress } from "@ethersproject/address";
-import { providers } from "ethers"; // RPC for ENS names
+import { chunk } from "../ui/array-utils";
+import { ensGraphFetch } from "./fetch-ens-graph";
 
 // Regex matches for addresses and ENS names
 const addressRegex: RegExp = /(0x[a-zA-Z0-9])\w+/;
@@ -27,7 +28,7 @@ class Logger {
 
 export default class Scraper {
   // Optional RPC to resolve ENS names to addresses
-  rpc?: providers.JsonRpcProvider | null;
+  // rpc?: providers.JsonRpcProvider | null;
   // Tweet conversation ID
   conversationID: string;
   // Twitter token
@@ -59,9 +60,9 @@ export default class Scraper {
     this.twitterBearer = twitterBearer;
     this.numTokens = numTokens;
 
-    if (rpcProvider) {
-      this.rpc = new providers.StaticJsonRpcProvider(rpcProvider);
-    }
+    // if (rpcProvider) {
+    //   this.rpc = new providers.StaticJsonRpcProvider(rpcProvider);
+    // }
     this.logger = new Logger();
   }
 
@@ -140,45 +141,52 @@ export default class Scraper {
    * Convert ENS names to addresses
    */
   async convertENS(): Promise<void> {
-    let convertedAddresses: { addr: string; ens?: string; tweet: string }[] =
-      [];
-
-    for (let i = 0; i < this.addresses.length; i++) {
-      // Force lowercase (to avoid .ETH, .eth, .eTh matching)
-      const address = this.addresses[i].addr.toLowerCase();
-      const addressData = this.addresses[i];
-
-      // If ENS name
-      if (address.includes(".eth")) {
-        // Resolve name via RPC
-        let parsed: string | undefined = await this.rpc?.resolveName(address);
-        if (!parsed && address.startsWith("0x")) {
-          // remove 0x prefix to see if name resolves
-          parsed = await this.rpc?.resolveName(address.substr(2));
-        }
-        if (parsed) {
-          this.logger.info(`found ens for ${address} as ${parsed}`);
-          // If successful resolve, push name
-          convertedAddresses.push({
-            addr: parsed,
-            ens: addressData.addr,
-            tweet: addressData.tweet,
-          });
-        } else {
-          this.logger.info(`could not find ens for ${address}`);
-        }
-      } else if (isAddress(address)) {
-        this.logger.info(`adding address ${address}`);
-        convertedAddresses.push({
-          addr: addressData.addr,
-          tweet: addressData.tweet,
-        });
+    let validAddresses: { addr: string; ens?: string; tweet: string }[] = [];
+    const ensCheckAddresses = [];
+    this.addresses.map((address) => {
+      console.log(address);
+      if (isAddress(address.addr.toLowerCase())) {
+        validAddresses.push(address);
+        this.logger.info(`address-like ${address.addr} valid`);
+      } else if (address.addr.includes(".eth")) {
+        ensCheckAddresses.push(address);
       } else {
-        this.logger.info(`invalid address entry ${address}`);
+        this.logger.error(`address-like ${address.addr} invalid`);
+      }
+    });
+
+    for (const chunkPart of chunk(ensCheckAddresses, 25)) {
+      const graphResults = await ensGraphFetch(
+        chunkPart.map((address) => address.addr)
+      );
+      console.log("has graph result", graphResults);
+      for (const addrPart of chunkPart) {
+        console.log({ graphResults, addrPart });
+        const foundEns = graphResults.find(
+          (result) => result.ens === addrPart.addr
+        );
+        console.log({ foundEns });
+        if (foundEns) {
+          validAddresses.push({
+            addr: foundEns.addr,
+            ens: foundEns.ens,
+            tweet: addrPart.tweet,
+          });
+          this.logger.info(
+            `Found address ${foundEns.ens} from ${addrPart.addr}`
+          );
+        } else {
+          this.logger.error(
+            `Could not resolve ${addrPart.addr} -- ${addrPart.tweet.replace(
+              "\n",
+              " "
+            )}`
+          );
+        }
       }
     }
 
-    this.addresses = convertedAddresses;
+    this.addresses = validAddresses;
   }
 
   /**
@@ -198,12 +206,12 @@ export default class Scraper {
     scrapedStrings(this.addresses);
 
     // If RPC provided
-    if (this.rpc) {
-      // Resolve ENS names to addresses
-      await this.convertENS();
-      this.logger.info("Converted ENS names to addresses");
-    }
+    // if (this.rpc) {
+    //   // Resolve ENS names to addresses
+    // }
 
+    await this.convertENS();
+    this.logger.info("Converted ENS names to addresses");
     // Output addresses to filesystem
     // await this.outputAddresses();
     // console.info("Outputted addresses in 100-address batches to /output");
