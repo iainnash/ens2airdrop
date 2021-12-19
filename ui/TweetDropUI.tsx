@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "degen/dist/style.css";
 import { ThemeProvider, Text, Heading } from "degen";
 import { ConfigPage } from "./ConfigPage";
 import { UserConfig } from "./types";
