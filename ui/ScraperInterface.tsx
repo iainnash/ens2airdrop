@@ -1,7 +1,8 @@
-import { useMemo, useState, useCallback, useEffect } from "react";
-import { Button, FieldSet, Input, Text, Textarea } from "degen";
+import { useMemo, useState, useCallback, useRef, useEffect } from "react";
+import { Button, FieldSet, Input, Textarea } from "degen";
 import Scraper from "../scraper/scraper";
 import { chunk } from "./array-utils";
+import { Hook, Console, Decode } from "console-feed";
 
 import { UserConfig } from "./types";
 
@@ -10,13 +11,14 @@ export const ScraperInterface = ({
 }: {
   userConfig: UserConfig;
 }) => {
-  const [numberScrapedTweets, setNumberScrapedTweets] = useState(0);
   const [status, setStatus] = useState("pending");
   const [numberOfTokens, setNumberOfTokens] = useState(0);
 
   const [etherscanChunkSize, setEtherscanChunkSize] = useState(100);
 
-  const [logs, setLogs] = useState([]);
+  const logViewer = useRef();
+
+  const [logs, setLogs] = useState<any>([]);
   const [addresses, setAddresses] = useState([]);
   const cleanedAddresses = useMemo(
     () => [...new Set(addresses.map((a) => a.addr))],
@@ -27,28 +29,27 @@ export const ScraperInterface = ({
     [cleanedAddresses, etherscanChunkSize]
   );
 
-  const scraper = useMemo(() => {
-    const scraper = new Scraper(
-      userConfig.twitterConversationId,
-      userConfig.twitterBearer,
-      10,
-      userConfig.ensRpcUrl
-    );
-    scraper.logger.listener = (logs) => {
-      setLogs(logs);
-    };
-    return scraper;
-  });
+  const scraper = useMemo(
+    () =>
+      new Scraper(
+        userConfig.twitterConversationId,
+        userConfig.twitterBearer,
+        10,
+        userConfig.ensRpcUrl
+      )
+  );
 
   useEffect(() => {
-    const i = setInterval(() => {
-      console.log('setting');
-      setLogs(scraper.logger.logs);
-    }, 1000);
-    return () => {
-      clearInterval(i);
-    };
-  }, [setLogs]);
+    if (scraper) {
+      scraper.logger.listener = (logs) => {
+        if (!logViewer.current) {
+          return;
+        }
+        logViewer.current.value = logs.map(([_, log]: any) => log).join("\n");
+        logViewer.current.scrollTop = logViewer.current.scrollHeight;
+      };
+    }
+  }, [logViewer.current, scraper]);
 
   const run = useCallback(() => {
     console.log("attempting scrape");
@@ -63,14 +64,14 @@ export const ScraperInterface = ({
   return (
     <>
       <Button onClick={run}>Run scrape</Button>
+      <br /><br />
 
-      <FieldSet legend="Commandline">
-        <Textarea
-          description="Fetch history updates"
-          value={logs.reverse().map(([_, log]: any) => log).join("\n")}
-          readonly
-        />
-
+      <FieldSet legend="Fetch ENS">
+        <Textarea label="Action log" readonly ref={logViewer} />
+      </FieldSet>
+      <br />
+      <br />
+      <FieldSet legend="Results for disperse.app">
         <Input
           value={numberOfTokens.toString()}
           type="number"
@@ -83,12 +84,17 @@ export const ScraperInterface = ({
           label="Collected Addresses"
           placeholder="Collecting..."
           readonly
-          rows={30}
+          rows={28}
           value={cleanedAddresses
-            .map((addr) => (numberOfTokens ? `addr,${numberOfTokens}` : addr))
+            .map((addr) =>
+              numberOfTokens ? `${addr},${numberOfTokens}` : addr
+            )
             .join("\n")}
         />
-
+      </FieldSet>
+      <br />
+      <br />
+      <FieldSet legend="Results for etherscan array">
         {/* chunk into 200 cleanedAddresses */}
         <Input
           value={etherscanChunkSize.toString()}
@@ -97,15 +103,18 @@ export const ScraperInterface = ({
             setEtherscanChunkSize(parseInt(e.target.value, 10));
           }}
           label="Etherscan chunk size"
+          description="Number of addresses to put in each array chunk to mint"
         />
         <Textarea
           label="Etherscan format"
           placeholder="Collecting..."
           readonly
-          rows={addressChunks.length * 2}
-          value={addressChunks.map((addressesChunk) => {
-            return `[${addressesChunk.join(',')}]`;
-          }).join('\n')}
+          rows={Math.max(addressChunks.length * 2, 15)}
+          value={addressChunks
+            .map((addressesChunk) => {
+              return `[${addressesChunk.join(",")}]`;
+            })
+            .join("\n")}
         />
       </FieldSet>
     </>

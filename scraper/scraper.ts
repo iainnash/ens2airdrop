@@ -60,7 +60,7 @@ export default class Scraper {
     this.numTokens = numTokens;
 
     if (rpcProvider) {
-      this.rpc = new providers.JsonRpcProvider(rpcProvider);
+      this.rpc = new providers.StaticJsonRpcProvider(rpcProvider);
     }
     this.logger = new Logger();
   }
@@ -88,20 +88,12 @@ export default class Scraper {
    */
   async collectTweets(nextSearchToken?: string): Promise<void> {
     // Collect tweets
-    const resp = await fetch(this.generateEndpoint(nextSearchToken), {
+    const resp = await fetch(await this.generateEndpoint(nextSearchToken), {
       headers: {
         Authorization: `Bearer ${this.twitterBearer}`,
       },
     });
     const data = await resp.json();
-
-    // const response = await axios({
-    //   method: "GET",
-    //   url: this.generateEndpoint(nextSearchToken),
-    //   headers: {
-    //     Authorization: `Bearer ${this.twitterBearer}`,
-    //   },
-    // });
 
     // Append new tweets
     const tweets: Record<string, string>[] = data.data;
