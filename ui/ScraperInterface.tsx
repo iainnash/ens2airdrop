@@ -67,7 +67,7 @@ export const ScraperInterface = ({
       <FieldSet legend="Commandline">
         <Textarea
           description="Fetch history updates"
-          value={logs.map(([_, log]: any) => log).join("\n")}
+          value={logs.reverse().map(([_, log]: any) => log).join("\n")}
           readonly
         />
 
