@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "parcel ui/index.html",
-    "build": "parcel build ui/index.html"
+    "build": "parcel build ui/index.html --dist-dir public"
   },
   "dependencies": {
     "@ethersproject/address": "^5.5.0",
