@@ -8,11 +8,10 @@ type ConfigPageProps = {
 
 export const ConfigPage = ({ nextStepAction }: ConfigPageProps) => {
   const [twitterBearer, setTwitterBearer] = useState("");
-  const [ensRpcUrl, setEnsRpcUrl] = useState("https://cloudflare-eth.com/");
   const [twitterConversationId, setTwitterConversationId] = useState("");
 
   const nextStep = useCallback(() => {
-    nextStepAction({ twitterBearer, ensRpcUrl, twitterConversationId });
+    nextStepAction({ twitterBearer, twitterConversationId });
   });
 
   return (
@@ -31,13 +30,6 @@ export const ConfigPage = ({ nextStepAction }: ConfigPageProps) => {
         generate the <code>Bearer token</code> to paste here.
       </Text>
 
-      <Input
-        required={true}
-        label="RPC URL for ENS resolution"
-        onChange={(e) => setEnsRpcUrl(e.target.value)}
-        value={ensRpcUrl}
-        description="This is an ETH RPC url for fetching ENS. For large batches, a custom provider url may need to be provided instead of the cloudflare default"
-      />
       <Input
         label="Twitter conversation ID"
         required={true}

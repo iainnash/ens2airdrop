@@ -205,16 +205,9 @@ export default class Scraper {
 
     scrapedStrings(this.addresses);
 
-    // If RPC provided
-    // if (this.rpc) {
-    //   // Resolve ENS names to addresses
-    // }
-
     await this.convertENS();
     this.logger.info("Converted ENS names to addresses");
-    // Output addresses to filesystem
-    // await this.outputAddresses();
-    // console.info("Outputted addresses in 100-address batches to /output");
+
     return this.addresses;
   }
 }
