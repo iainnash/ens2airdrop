@@ -5,4 +5,4 @@ Inspired by https://github.com/Anish-Agnihotri/tweetdrop but it's a more user-fr
 
 Works nice with [`nft-editions`](https://github.com/ourzora/nft-editions) contracts to mint out editions directly to users.
 
-Use at: **INSERT URL**
+Use at: https://ens2airdrop.vercel.app
