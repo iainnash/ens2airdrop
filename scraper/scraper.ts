@@ -4,7 +4,7 @@ import { ensGraphFetch } from "./fetch-ens-graph";
 
 // Regex matches for addresses and ENS names
 const addressRegex: RegExp = /(0x[a-zA-Z0-9])\w+/;
-const ENSRegex: RegExp = /([a-zA-Z0-9]\w+.(eth))/i;
+const ENSRegex: RegExp = /([^ ]+.(eth))/i;
 type AddressInfo = { addr: string; tweet: string; ens?: string };
 
 class Logger {
@@ -126,6 +126,10 @@ export default class Scraper {
       for (const foundArrs of [foundAddress, foundENS]) {
         // If match in tweet
         if (foundArrs && foundArrs.length > 0) {
+          // lower-case ens names for accidental upper-case
+          if (foundArrs[0].match(/ens$/i) || foundArrs[0].match(/[A-Z]/)) {
+            this.addresses.push({addr: foundArrs[0].toLowerCase(), tweet: tweet.text})
+          }
           // If type(address)
           const addr: string = foundArrs[0].startsWith("0x")
             ? // Quick cleaning to only grab first 42 characters
