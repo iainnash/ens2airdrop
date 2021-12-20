@@ -62,11 +62,24 @@ export const ScraperInterface = ({
 
   return (
     <>
-      <Button onClick={run}>Run scrape</Button>
-      <br /><br />
+      <Button onClick={run} disabled={status === "scraping"}>
+        Run scrape
+      </Button>
+      <br />
+      <br />
 
       <FieldSet legend="Fetch ENS">
         <Textarea label="Action log" readonly ref={logViewer} />
+        {/* chunk into 200 cleanedAddresses */}
+        <Input
+          value={etherscanChunkSize.toString()}
+          type="number"
+          onChange={(e) => {
+            setEtherscanChunkSize(parseInt(e.target.value, 10));
+          }}
+          label="Address chunk size"
+          description="Number of addresses to add in each chunk"
+        />
       </FieldSet>
       <br />
       <br />
@@ -79,42 +92,35 @@ export const ScraperInterface = ({
           }}
           label="Number of tokens (erc20 disperse.app) (set to 0 to omit)"
         />
-        <Textarea
-          label="Collected Addresses"
-          placeholder="Collecting..."
-          readonly
-          rows={28}
-          value={cleanedAddresses
-            .map((addr) =>
-              numberOfTokens ? `${addr},${numberOfTokens}` : addr
-            )
-            .join("\n")}
-        />
+        {/* chunk viewer */}
+        {chunk(cleanedAddresses, etherscanChunkSize).map((chunk, chunkId) => (
+          <Textarea
+            label={`Collected Addresses Chunk #${chunkId + 1}`}
+            placeholder="Collecting..."
+            key={chunkId}
+            readonly
+            rows={28}
+            value={chunk
+              .map((addr) =>
+                numberOfTokens ? `${addr},${numberOfTokens}` : addr
+              )
+              .join("\n")}
+          />
+        ))}
       </FieldSet>
       <br />
       <br />
       <FieldSet legend="Results for etherscan array">
-        {/* chunk into 200 cleanedAddresses */}
-        <Input
-          value={etherscanChunkSize.toString()}
-          type="number"
-          onChange={(e) => {
-            setEtherscanChunkSize(parseInt(e.target.value, 10));
-          }}
-          label="Etherscan chunk size"
-          description="Number of addresses to put in each array chunk to mint"
-        />
-        <Textarea
-          label="Etherscan format"
-          placeholder="Collecting..."
-          readonly
-          rows={Math.max(addressChunks.length * 2, 15)}
-          value={addressChunks
-            .map((addressesChunk) => {
-              return `[${addressesChunk.join(",")}]`;
-            })
-            .join("\n")}
-        />
+        {addressChunks.map((chunk, indx) => (
+          <Textarea
+            key={indx}
+            label={`Etherscan format chunk #${indx + 1}`}
+            placeholder="Collecting..."
+            readonly
+            rows={4}
+            value={`[${chunk.join(",")}]`}
+          />
+        ))}
       </FieldSet>
     </>
   );
