@@ -89,10 +89,12 @@ export default class Scraper {
    */
   async collectTweets(nextSearchToken?: string): Promise<void> {
     // Collect tweets
+    const headers = {}
+    if (this.twitterBearer) {
+      headers['authorization'] = `Bearer ${this.twitterBearer}`
+    }
     const resp = await fetch(await this.generateEndpoint(nextSearchToken), {
-      headers: {
-        Authorization: `Bearer ${this.twitterBearer}`,
-      },
+      headers,
     });
     const data = await resp.json();
 

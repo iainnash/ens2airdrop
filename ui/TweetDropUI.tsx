@@ -31,6 +31,15 @@ export const TweetDropUI = () => {
         ) to download all tweets from a <em>drop your ens</em> thread and parse
         out both validish eth addresses and resolve ens addresses within.
       </Text>
+      <Text>
+        <br />
+        Pairs well with nft-edition's{" "}
+        <a href="https://edition-drop.vercel.app" target="_blank">
+          edition drop
+        </a>{" "}
+        drop interface for dropping idential sets of 721 NFTs on ethereum and
+        polygon.
+      </Text>
       <br />
       <Content />
     </ThemeProvider>

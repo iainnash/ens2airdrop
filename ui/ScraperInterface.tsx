@@ -2,7 +2,6 @@ import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { Button, FieldSet, Input, Textarea } from "degen";
 import Scraper from "../scraper/scraper";
 import { chunk } from "./array-utils";
-import { Hook, Console, Decode } from "console-feed";
 
 import { UserConfig } from "./types";
 
