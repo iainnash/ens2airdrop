@@ -18,7 +18,10 @@ export async function ensGraphFetch(domains: string[]) {
       method: "POST",
       body: JSON.stringify({
         query,
-        variables: { names: domains },
+        variables: {
+          // remove domain including java logger injection that breaks cloudflare
+          names: domains.filter((domain) => !domain.includes("${")),
+        },
         operationName: "resolves",
       }),
       headers: { "content-type": "application/json" },
