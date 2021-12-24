@@ -6,6 +6,8 @@ import { getAddress } from "@ethersproject/address";
 
 import { UserConfig } from "./types";
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 export const ScraperInterface = ({
   userConfig,
 }: {
@@ -18,10 +20,15 @@ export const ScraperInterface = ({
 
   const logViewer = useRef();
 
-  const [logs, setLogs] = useState<any>([]);
   const [addresses, setAddresses] = useState([]);
   const cleanedAddresses = useMemo(
-    () => [...new Set(addresses.map((a) => getAddress(a.addr)))],
+    () => [
+      ...new Set(
+        addresses
+          .map((a) => getAddress(a.addr))
+          .filter((a) => a !== ZERO_ADDRESS)
+      ),
+    ],
     [addresses]
   );
   const addressChunks = useMemo(
@@ -35,7 +42,7 @@ export const ScraperInterface = ({
         userConfig.twitterConversationId,
         userConfig.twitterBearer,
         10,
-        userConfig.ensRpcUrl
+        // userConfig.ensRpcUrl
       )
   );
 

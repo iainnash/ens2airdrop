@@ -54,7 +54,7 @@ export default class Scraper {
     conversationID: string,
     twitterBearer: string,
     numTokens: number,
-    rpcProvider?: string
+    // rpcProvider?: string
   ) {
     this.conversationID = conversationID;
     this.twitterBearer = twitterBearer;
