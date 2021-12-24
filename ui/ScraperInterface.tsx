@@ -2,6 +2,7 @@ import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { Button, FieldSet, Input, Textarea } from "degen";
 import Scraper from "../scraper/scraper";
 import { chunk } from "./array-utils";
+import { getAddress } from "@ethersproject/address";
 
 import { UserConfig } from "./types";
 
@@ -20,7 +21,7 @@ export const ScraperInterface = ({
   const [logs, setLogs] = useState<any>([]);
   const [addresses, setAddresses] = useState([]);
   const cleanedAddresses = useMemo(
-    () => [...new Set(addresses.map((a) => a.addr))],
+    () => [...new Set(addresses.map((a) => getAddress(a.addr)))],
     [addresses]
   );
   const addressChunks = useMemo(
